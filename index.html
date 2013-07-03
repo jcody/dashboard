@@ -1,0 +1,127 @@
+<html>
+<head>
+<title>Dashboard - Code for America</title>
+<link href="bootstrap.min.css" rel="stylesheet">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+function createChart(target, expected, actual) {
+
+	var data = [target, expected, actual];
+
+	// height and width
+	var w = 500;
+	var h = 100;
+ 	
+ 	// create svg canvas at end of body with given height and width
+	var svg = d3.select("body").append("svg")
+				.attr("class", "chart")
+	            .attr("width", w)
+	            .attr("height", h);
+	
+
+	var y = d3.scale.linear()
+		.domain([0, d3.max(data)])
+		.range([0, 20]);
+
+	// create each bar (3) in current graph
+    svg.selectAll("rect")
+		.data(data)
+		.enter().append("rect")
+		.attr("x", function(d, i) { return i * 20; })
+		.attr("width", 20)
+		.attr("height", y);
+
+
+
+	console.log("Target: " + target);
+	console.log("Expected: " + expected);
+	console.log("Actual: " + actual);
+}
+
+
+$(document).ready(function() {
+	var key = "0ArD6i8OpqRMQdHNCRWxTMnR4WGN5YmE3TkZnQWFKbnc";
+	var googUrl = "https://spreadsheets.google.com/feeds/list/" + key + "/1/public/values?alt=json";
+
+	$.ajax({
+		type: 'GET',
+		url: googUrl,
+		dataType: 'json',
+		success: function(data) {
+			var rows = data.feed.entry[0];
+			var target, expected, actual;
+
+			for (var i in rows) {
+				// grab only the data cells, forget all the updated, category and title json data that the gapi provides
+				if (i != 'id' && i != 'updated' && i != 'category' && i != 'title' && i != 'content' && i != 'link' && i!= 'gsx$timestamp' && i != 'gsx$username') {
+					console.log('i: ' + i + ' | element: ' + rows[i].$t);
+
+					$('tbody').append("<tr><td>" + i + "</td><td>" + rows[i].$t + "</td></tr>");
+
+					// match current cells to target, expected or actual values
+					// if actual value found createChart of the retreived values
+					if (/target/.test(i))
+						target = rows[i].$t;
+					else if (/expected/.test(i))
+						expected = rows[i].$t;
+					else if (/actual/.test(i)) {
+						actual = rows[i].$t;
+						createChart(target, expected, actual);
+					}
+				}
+			}
+		}
+	});
+});
+
+
+</script>
+<style type="text/css">
+	.chart rect {
+		stroke: white;
+		fill: steelblue;
+	}
+</style>
+</head>
+
+<body>
+    <div class="navbar navbar-inverse ">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">CfA Dashboard</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <h1>Code for America Dashboard 2013</h1>
+      
+      <table class="table">
+      	<thead>
+      		<tr>
+      			<th>Google Spreadsheet Key</th>
+      			<th>Value</th>
+      		</tr>
+      	</thead>
+      	<tbody>
+      	</tbody>
+
+    </div> <!-- /container -->
+
+
+</body>
+</html>
